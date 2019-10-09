@@ -12,9 +12,11 @@ interface SubitoDateInterface
 
     public function getEndDate(): string ;
 
+    public function getSplitDate(string $date): array ;
+
     public function isValidDate(string $date): bool;
 
-    public function isLeapMonth(string $date): bool;
+    public function isLeapYear(string $date): bool;
 
     public function diff(): object;
 }

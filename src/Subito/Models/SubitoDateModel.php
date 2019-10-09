@@ -48,6 +48,18 @@ class SubitoDateModel implements SubitoDateInterface
         return $this->endDate;
     }
 
+    public function getSplitDate(string $date): array {
+
+        $dateExploded = explode("/", $date); // 0 -> YYYY 1 -> MM 2 -> DD
+        return [
+            'fullDate' => $date,
+            'y'        => $dateExploded[0],
+            'm'        => $dateExploded[1],
+            'd'        => $dateExploded[2],
+        ];
+
+    }
+
     public function isValidDate($date): bool
     {
         /**
@@ -122,7 +134,7 @@ class SubitoDateModel implements SubitoDateInterface
         return true;
     }
 
-    public function isLeapMonth($date): bool
+    public function isLeapYear($date): bool
     {
         $subDate = explode("/", $date); // 0 -> YYYY 1 -> MM 2 -> DD
         $y = $subDate[0];
@@ -155,22 +167,8 @@ class SubitoDateModel implements SubitoDateInterface
         *
         */
 
-        $startSubDateExploded = explode("/", $this->getStartDate()); // 0 -> YYYY 1 -> MM 2 -> DD
-        $start = [
-            'fullDate' => $this->getStartDate(),
-            'y'        => $startSubDateExploded[0],
-            'm'        => $startSubDateExploded[1],
-            'd'        => $startSubDateExploded[2],
-        ];
-
-        $endSubDateExploded = explode("/", $this->getEndDate()); // 0 -> YYYY 1 -> MM 2 -> DD
-        $end = [
-            'fullDate' => $this->getEndDate(),
-            'y'        => $endSubDateExploded[0],
-            'm'        => $endSubDateExploded[1],
-            'd'        => $endSubDateExploded[2],
-        ];
-
+        $start = $this->getSplitDate($this->getStartDate());
+        $end   = $this->getSplitDate($this->getEndDate());
 
         $differences = [];
         $differences['y'] = $end['y'] - $start['y'];
@@ -205,7 +203,7 @@ class SubitoDateModel implements SubitoDateInterface
             }
             elseif(in_array($referenceMonth, $this->shortMonths) && $referenceMonth == '02'){
 
-                if ($this->isLeapMonth($referenceYear.'/02/01')) {
+                if ($this->isLeapYear($referenceYear.'/02/01')) {
                     $daysInMonth = 29;
                 }
                 else {
@@ -236,7 +234,7 @@ class SubitoDateModel implements SubitoDateInterface
 
                 elseif(in_array($i, $this->shortMonths) && $i == '02'){
 
-                    if ($this->isLeapMonth($startingYear.'/02/01')) {
+                    if ($this->isLeapYear($startingYear.'/02/01')) {
                         $daysInMonth = 29;
                     }
                     else {
