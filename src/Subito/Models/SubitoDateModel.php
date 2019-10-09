@@ -196,17 +196,14 @@ class SubitoDateModel implements SubitoDateInterface
 
         $start = $this->getSplitDate($this->getStartDate());
         $end   = $this->getSplitDate($this->getEndDate());
-
         $daysDiff = [
             'y' => 0,
             'm' => 0,
             'd' => 0,
         ];
-        $diff = [
-            'yearsDifference' => 0,
-        ];
 
         // day diff: adding a day until the end day date is reached
+        $daysDifference = $start['d'] - $end['d'];
         for ($i = $start['d']; $i != $end['d']; $i++) {
 
             $daysDiff['d']++;
@@ -246,12 +243,18 @@ class SubitoDateModel implements SubitoDateInterface
 
         }
 
+        // check if inverted
+        $inverted = 1;
+        if ($daysDifference < 0 || $monthsDifference < 0 || $yearsDifference < 0) {
+            $inverted = 0;
+        }
+
         return (object) array(
             'years'      => intdiv($daysDiff['y'],365),
             'months'     => intdiv($daysDiff['m'],31),
             'days'       => $daysDiff['d'],
-            'total_days' => $daysDiff['y'] + $daysDiff['m'] - ($start['d'] - $end['d']) +1,
-            'invert'     => null
+            'total_days' => $daysDiff['y'] + $daysDiff['m'] - ($daysDifference) + 1,
+            'invert'     => $inverted
         );
     }
 }
