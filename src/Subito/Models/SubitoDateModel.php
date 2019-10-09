@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace Subito\Models;
 
-use phpDocumentor\Reflection\Types\This;
 use Subito\Interfaces\SubitoDateInterface;
 
 class SubitoDateModel implements SubitoDateInterface
@@ -58,9 +57,6 @@ class SubitoDateModel implements SubitoDateInterface
         *
         */
 
-        $longMonths  = ['01','03','05','07','08','10','12'];
-        $shortMonths = ['02','04','06','09','11'];
-
         // Check if date is a string
         if (!is_string($date)) {
             return false;
@@ -96,7 +92,7 @@ class SubitoDateModel implements SubitoDateInterface
         }
 
         // Check if is a 30-days months and day is within 1-30 range
-        if (in_array($m, $shortMonths) && $d > 30) {
+        if (in_array($m, $this->shortMonths) && $d > 30) {
             return false;
         }
 
