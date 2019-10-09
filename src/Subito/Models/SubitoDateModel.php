@@ -4,12 +4,16 @@ declare(strict_types = 1);
 
 namespace Subito\Models;
 
+use phpDocumentor\Reflection\Types\This;
 use Subito\Interfaces\SubitoDateInterface;
 
 class SubitoDateModel implements SubitoDateInterface
 {
     private $startDate;
     private $endDate;
+
+    private $longMonths  = ['01','03','05','07','08','10','12'];
+    private $shortMonths = ['02','04','06','09','11'];
 
     public function __construct(string $startDate, string $endDate)
     {
@@ -122,6 +126,31 @@ class SubitoDateModel implements SubitoDateInterface
         return true;
     }
 
+    public function isLeapMonth($date): bool
+    {
+        $subDate = explode("/", $date); // 0 -> YYYY 1 -> MM 2 -> DD
+        $y = $subDate[0];
+        $m = $subDate[1];
+        $d = $subDate[2];
+
+        // Check February non-leap year
+        if ($m === '02') {
+
+            // Calculate if is a leap-year
+            $leapYear = false;
+            if ($y % 100 === 0 && $y % 400 !== 0) {
+                $leapYear = false;
+            }
+            elseif ($y % 4 === 0)  {
+                $leapYear = true;
+            }
+
+            return $leapYear;
+        }
+
+        return true;
+    }
+
     public function diff(): object
     {
         /* @TODO
@@ -130,11 +159,104 @@ class SubitoDateModel implements SubitoDateInterface
         *
         */
 
+        $startSubDateExploded = explode("/", $this->getStartDate()); // 0 -> YYYY 1 -> MM 2 -> DD
+        $start = [
+            'fullDate' => $this->getStartDate(),
+            'y'        => $startSubDateExploded[0],
+            'm'        => $startSubDateExploded[1],
+            'd'        => $startSubDateExploded[2],
+        ];
+
+        $endSubDateExploded = explode("/", $this->getEndDate()); // 0 -> YYYY 1 -> MM 2 -> DD
+        $end = [
+            'fullDate' => $this->getEndDate(),
+            'y'        => $endSubDateExploded[0],
+            'm'        => $endSubDateExploded[1],
+            'd'        => $endSubDateExploded[2],
+        ];
+
+
+        $differences = [];
+        $differences['y'] = $end['y'] - $start['y'];
+        $differences['m'] = $end['m'] - $start['m'];
+        $differences['d'] = 0;
+
+        // calculate day difference
+        //$dayDifference = $start['d'] - $end['d'];
+        $i = $start['d'];
+        while ($i != $end['d']-1) {
+
+            $differences['d'] = $differences['d'] + 1;
+
+            if ($i == 31) {
+                $i = 1;
+            }
+            else { $i++; }
+        }
+
+
+        // calculate month difference
+        $daysMonthDifference = 0;
+        $monthsDifference = $start['m'] - $end['m'];
+        $referenceYear  = $start['y'];
+        $referenceMonth = $start['m']-1;
+
+        for ($i = 0; $i < abs($monthsDifference); $i++) {
+
+            $daysInMonth = 30;
+            if (in_array($referenceMonth, $this->longMonths)){
+                $daysInMonth = 31;
+            }
+            elseif(in_array($referenceMonth, $this->shortMonths) && $referenceMonth == '02'){
+
+                if ($this->isLeapMonth($referenceYear.'/02/01')) {
+                    $daysInMonth = 29;
+                }
+                else {
+                    $daysInMonth = 28;
+                }
+            }
+
+            $daysMonthDifference = $daysMonthDifference + $daysInMonth;
+
+            $referenceMonth--;
+            if ($referenceMonth === 0) {
+                $referenceMonth = 12;
+                $referenceYear--;
+            }
+        }
+
+        // calculate year difference
+        $daysInYearDifference = 0;
+        $startingYear = $start['y'];
+        if ($start['y'] < $end['y']) {
+            for ($i = 1; $i <= 12; $i++) {
+
+                $daysInMonth = 30;
+
+                if (in_array($i, $this->longMonths)){
+                    $daysInMonth = 31;
+                }
+
+                elseif(in_array($i, $this->shortMonths) && $i == '02'){
+
+                    if ($this->isLeapMonth($startingYear.'/02/01')) {
+                        $daysInMonth = 29;
+                    }
+                    else {
+                        $daysInMonth = 28;
+                    }
+                }
+
+                $daysInYearDifference = $daysInYearDifference + $daysInMonth;
+            }
+        }
+
         return (object) array(
-            'years' => null,
-            'months' => null,
-            'days' => null,
-            'total_days' => null,
+            'years'  => intdiv($daysInYearDifference , 365),
+            'months' => intdiv($daysMonthDifference , 31),
+            'days'   => ($differences['d']),
+            'total_days' => $daysInYearDifference + $daysMonthDifference - ($start['d'] - $end['d']) +1,
             'invert' => null
         );
     }
