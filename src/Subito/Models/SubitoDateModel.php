@@ -202,7 +202,6 @@ class SubitoDateModel implements SubitoDateInterface
             'm' => 0,
             'd' => 0,
         ];
-
         $diff = [
             'yearsDifference' => 0,
         ];
@@ -236,11 +235,10 @@ class SubitoDateModel implements SubitoDateInterface
         }
 
         // year diff: add days foreach year and month until the end date is reached
+        $yearsDifference = $start['y'] - $end['y'];
         $year = $start['y'];
 
-        if ($start['y'] < $end['y']) {
-
-            $diff['yearsDifference']++;
+        for ($c = 0; $c < abs($yearsDifference); $c++) {
 
             for ($i = 1; $i <= 12; $i++) {
                 $daysDiff['y'] +=  $this->elaborateDaysInMonth($i, $year);
@@ -249,7 +247,7 @@ class SubitoDateModel implements SubitoDateInterface
         }
 
         return (object) array(
-            'years'      => $diff['yearsDifference'],
+            'years'      => intdiv($daysDiff['y'],365),
             'months'     => intdiv($daysDiff['m'],31),
             'days'       => $daysDiff['d'],
             'total_days' => $daysDiff['y'] + $daysDiff['m'] - ($start['d'] - $end['d']) +1,
