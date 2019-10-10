@@ -1,10 +1,36 @@
 PHP Interview Test
 ========
 
-Calculate the difference between two given dates without using any of the built in PHP date functions or objects.
+Quick setup and testing
+-------
+
+**Setup**
+
+- Install php, composer and phpunit on local
+
+    `brew install php`
+    
+    `brew install composer`
+    
+    `brew install phpunit`
+    
+    `composer install`
+
+**Testing**    
+- Manual test with video output 
+
+    `php bin/diff.php 2015/12/25 2016/12/25`
+    
+- Launch phpunit test: 
+
+    `vendor/bin/phpunit`
+
 
 Assumptions
 -----------
+
+Calculate the difference between two given dates without using any of the built in PHP date functions or objects.
+
 
 * Dates will be provided in the format “YYYY/MM/DD” for example “2015/03/21”.
 * All dates will be based on the Gregorian calendar.
@@ -27,43 +53,5 @@ stdClass {
 Requirements
 ------------
 * >= PHP 7.2: http://php.net
-* Composer: https://getcomposer.org
+* >= Composer: https://getcomposer.org
 * >= PHPUnit 7.0: https://phpunit.de/getting-started.html
-
-
-Getting Started
----------------
-* From the root run `composer install`
-* Code until you are satisfied and automated tests will be green
-* ZIP up your solution and send it to us
-
-Setup and testing
--------
-
-- Install php, composer and phpunit on local
-
-    `brew install php`
-    
-    `brew install composer`
-    
-    `brew install phpunit`
-    
-- Execute: `composer install`
-
-- Launch test: `vendor/bin/phpunit`
-
-Testing
--------
-Basic unit tests are provided in the tests folder. To run these steps simply run:
-
-```
-phpunit -c phpunit.xml.dist
-```
-
-Notes
--------
-In bin folder there is a executable to use it by CLI
-
-```
-php bin/diff.php 2015/12/25 2016/12/25
-```
