@@ -134,17 +134,17 @@ class SubitoDateModel implements SubitoDateInterface
         return true;
     }
 
-    public function isLeapYear($date): bool
+    public function isLeapYear(string $date): bool
     {
         /**
-         * Check is is the passed date is a leap year
+         * Check if date is a leap year
          */
 
         $subDate = explode("/", $date); // 0 -> YYYY 1 -> MM 2 -> DD
         $y = $subDate[0];
         $m = $subDate[1];
 
-        // Check February non-leap year
+        // Check if the passed date is in february
         if ($m === '02') {
 
             // Calculate if is a leap-year
@@ -159,7 +159,7 @@ class SubitoDateModel implements SubitoDateInterface
             return $leapYear;
         }
 
-        return true;
+        return false;
     }
 
     public function elaborateDaysInMonth($month, $year): int {
@@ -196,64 +196,76 @@ class SubitoDateModel implements SubitoDateInterface
 
         $start = $this->getSplitDate($this->getStartDate());
         $end   = $this->getSplitDate($this->getEndDate());
+        $inverted = 0;
         $daysDiff = [
             'y' => 0,
             'm' => 0,
             'd' => 0,
+            'month' => 0,
         ];
 
+        // check if start > of end, and invert
+        if ($start['y'] > $end['y']) {
+            $start = $this->getSplitDate($this->getEndDate());
+            $end   = $this->getSplitDate($this->getStartDate());
+            $inverted = 1;
+        }
+        else if ($start['y'] == $end['y'] && $start['m'] > $end['m']) {
+            $start = $this->getSplitDate($this->getEndDate());
+            $end   = $this->getSplitDate($this->getStartDate());
+            $inverted = 1;
+        }
+        else if ($start['y'] == $end['y'] && $start['m'] > $end['m'] && $start['d'] > $end['d']) {
+            $start = $this->getSplitDate($this->getEndDate());
+            $end   = $this->getSplitDate($this->getStartDate());
+            $inverted = 1;
+        }
+
+        // year diff: add days foreach year and month until the end date is reached
+        $year = $start['y'];
+
+        // for each year
+        for ($c = $year; $c <= $end['y']; $c++) {
+
+            // for each month of the year
+            for ($i = ($c == $year ? $start['m'] : 1) ; $i <= 12; $i++) {
+
+                // if is same MM and YY of start date, add only remaining days
+                if ($i == $start['m'] && $c == $start['y']) {
+                    $daysDiff['y'] +=  ($this->elaborateDaysInMonth($i, $c) - $start['d']);
+                }
+
+                // if is same MM and YY of end date, add only specified days
+                else if ($i == $end['m'] && $c == $end['y']) {
+                    $daysDiff['y'] +=  $end['d'];
+                    break;
+                }
+
+                // if is not an end/start month, add all month's days
+                else {
+                    $daysDiff['y'] +=  $this->elaborateDaysInMonth($i, $c);
+                }
+            }
+        }
+
         // day diff: adding a day until the end day date is reached
-        $daysDifference = $start['d'] - $end['d'];
         for ($i = $start['d']; $i != $end['d']; $i++) {
-
             $daysDiff['d']++;
-
             if ($i == 31) {
                 $i = 1;
             }
         }
 
-        // month diff: add days foreach month until the end date is reached
-        $monthsDifference = $start['m'] - $end['m'];
-        $year  = $start['y'];
-        $month = $start['m']-1;
-
-        for ($i = 0; $i < abs($monthsDifference); $i++) {
-
-            $daysDiff['m'] += $this->elaborateDaysInMonth($month, $year);
-
-            if ($month === 1) {
-                $month = 12;
-                $year--;
-            }
-            else {
-                $month--;
-            }
-        }
-
-        // year diff: add days foreach year and month until the end date is reached
-        $yearsDifference = $start['y'] - $end['y'];
-        $year = $start['y'];
-
-        for ($c = 0; $c < abs($yearsDifference); $c++) {
-
-            for ($i = 1; $i <= 12; $i++) {
-                $daysDiff['y'] +=  $this->elaborateDaysInMonth($i, $year);
-            }
-
-        }
-
-        // check if inverted
-        $inverted = 1;
-        if ($daysDifference < 0 || $monthsDifference < 0 || $yearsDifference < 0) {
-            $inverted = 0;
-        }
+        // Calculate differences
+        $years  = intdiv($daysDiff['y'],365);
+        $months = intdiv($daysDiff['y'] - (365*$years),30);
+        $days   = $daysDiff['d'] ;
 
         return (object) array(
-            'years'      => intdiv($daysDiff['y'],365),
-            'months'     => intdiv($daysDiff['m'],31),
-            'days'       => $daysDiff['d'],
-            'total_days' => $daysDiff['y'] + $daysDiff['m'] - ($daysDifference) + 1,
+            'years'      => $years,
+            'months'     => $months,
+            'days'       => $days,
+            'total_days' => $daysDiff['y'],
             'invert'     => $inverted
         );
     }
